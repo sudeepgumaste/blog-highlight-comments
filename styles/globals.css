@@ -18,3 +18,9 @@ a {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* color tokens */
+  --bg-layer-1: rgb(17, 24, 39);
+  --bg-layer-2: rgb(31, 41, 55);
+}
