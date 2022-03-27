@@ -3,7 +3,7 @@ import { useQuery, UseQueryResult } from 'react-query'
 import { queryKeys } from '../../utils/queryKeys'
 
 type ReturnType = {
-  comments: Comment[]
+  comments: InlineComment[]
 }
 
 type Params = {

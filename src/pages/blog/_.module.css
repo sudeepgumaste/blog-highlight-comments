@@ -1,5 +1,6 @@
 .blogBody :is(h1, h2, h3, h4, h5, p) {
   margin-bottom: 16px;
+  position: relative;
 }
 
 .blogBody h1 {
