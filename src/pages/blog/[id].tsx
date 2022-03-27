@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
 import Divider from '../../components/atoms/Divider/Divider'
-import InlineCommentAsterisk from '../../components/atoms/InlineCommentAsterisk/InlineCommentAsterisk'
+import InlineCommentAsterisk from '../../components/templates/InlineCommentAsterisk/InlineCommentAsterisk'
 import Layout from '../../components/templates/Layout/Layout'
 
 import useGetBlogById from '../../hooks/api/use-get-blog-by-id'
