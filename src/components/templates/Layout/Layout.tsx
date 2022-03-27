@@ -29,10 +29,11 @@ const Layout = ({
       <main
         className={clsx(
           styles.content,
-          'tw-bg-bg-layer-1 | tw-text-gray-300 | tw-py-4'
+          'tw-bg-bg-layer-1 | tw-text-gray-300 | tw-py-4 | tw-relative'
         )}
       >
         {children}
+        <div id="inline-comment-float-portal" />
       </main>
     </>
   )

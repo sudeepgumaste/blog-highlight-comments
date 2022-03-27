@@ -60,13 +60,8 @@ const BlogPage = ({ id: blogId }: Props) => {
           </div>
         )}
         {renderComments &&
-          inlineCommentsRes?.comments.map(({ tagId, startPos, endPos }) => (
-            <InlineCommentAsterisk
-              key={tagId}
-              tagId={tagId}
-              startPos={startPos}
-              endPos={endPos}
-            />
+          inlineCommentsRes?.comments.map(props => (
+            <InlineCommentAsterisk key={props.tagId} {...props} />
           ))}
       </>
     </Layout>

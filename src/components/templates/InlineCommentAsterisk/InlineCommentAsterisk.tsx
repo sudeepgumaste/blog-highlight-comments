@@ -2,16 +2,30 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import Asterisk from '../../../../public/assets/asterisk.svg'
+import InlineCommentBox from '../InlineCommentBox/InlineCommentBox'
 
 interface Props {
   tagId: string
   startPos: number
   endPos: number
+  commentId: string
+  comment: string
 }
 
-const InlineCommentAsterisk = ({ tagId, startPos, endPos }: Props) => {
+const InlineCommentAsterisk = ({
+  tagId,
+  startPos,
+  endPos,
+  comment,
+  commentId
+}: Props) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isCommentsActive, setIsCommentsActive] = useState(false)
+
+  const [commentBoxPosition, setCommentBoxPosition] = useState({
+    x: 0,
+    y: 0
+  })
 
   const defaultHtml = useRef<string>('')
 
@@ -20,9 +34,23 @@ const InlineCommentAsterisk = ({ tagId, startPos, endPos }: Props) => {
     defaultHtml.current = _innerHtml
   }, [tagId])
 
-  const handleToggleCommentsActive = () => {
+  const handleToggleCommentBoxActive = useCallback(() => {
     setIsCommentsActive(isActive => !isActive)
-  }
+
+    const trigger = document.getElementById(`inline-comment-trigger-${tagId}`)
+    const html = document.querySelector('html')
+
+    const {
+      top: triggerTop,
+      left: triggerLeft,
+      width: triggerWidth
+    } = trigger.getBoundingClientRect()
+
+    setCommentBoxPosition({
+      x: triggerLeft + triggerWidth,
+      y: triggerTop + html.scrollTop
+    })
+  }, [tagId])
 
   const modifyInnerHtml = useCallback(
     ({ startPos, endPos }) => {
@@ -65,7 +93,10 @@ const InlineCommentAsterisk = ({ tagId, startPos, endPos }: Props) => {
       const inlineCommentTrigger = document.getElementById(
         `inline-comment-trigger-${tagId}`
       )
-      inlineCommentTrigger.addEventListener('click', handleToggleCommentsActive)
+      inlineCommentTrigger.addEventListener(
+        'click',
+        handleToggleCommentBoxActive
+      )
       if (!isHovered) {
         inlineCommentTrigger.addEventListener(
           'mouseover',
@@ -75,15 +106,28 @@ const InlineCommentAsterisk = ({ tagId, startPos, endPos }: Props) => {
         inlineCommentTrigger.addEventListener('mouseout', handleHoverOnAsterisk)
       }
     }, 0)
-  }, [handleHoverOnAsterisk, isHovered, tagId])
+  }, [handleHoverOnAsterisk, handleToggleCommentBoxActive, isHovered, tagId])
 
   const render = () => (
-    <button
-      id={`inline-comment-trigger-${tagId}`}
-      className="tw-text-3xl | tw-absolute -tw-top-2 -tw-right-2 | tw-z-40"
-    >
-      <Asterisk className="tw-w-4 tw-h-4" />
-    </button>
+    <>
+      <button
+        id={`inline-comment-trigger-${tagId}`}
+        className="tw-text-3xl | tw-absolute -tw-top-2 -tw-right-2 | tw-z-40"
+      >
+        <Asterisk className="tw-w-4 tw-h-4" />
+      </button>
+      {isCommentsActive && (
+        <InlineCommentBox
+          comment={comment}
+          commentId={commentId}
+          toggleComment={handleToggleCommentBoxActive}
+          position={{
+            x: commentBoxPosition.x,
+            y: commentBoxPosition.y - 64
+          }}
+        />
+      )}
+    </>
   )
   return createPortal(render(), document.getElementById(tagId))
 }

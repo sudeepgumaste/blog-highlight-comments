@@ -1,5 +1,5 @@
 declare type InlineComment = {
-  commentId: number
+  commentId: string
   tagId: string
   startPos: number
   endPos: number
