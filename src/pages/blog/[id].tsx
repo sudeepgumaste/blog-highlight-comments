@@ -100,8 +100,13 @@ const BlogPage = ({ id: blogId }: Props) => {
           </div>
         )}
         {renderComments &&
-          inlineCommentsRes?.comments.map(props => (
-            <InlineCommentAsterisk key={props.tagId} {...props} />
+          inlineCommentsRes?.tagIdMap &&
+          Object.keys(inlineCommentsRes?.tagIdMap)?.map(tagId => (
+            <InlineCommentAsterisk
+              key={tagId}
+              comments={inlineCommentsRes.tagIdMap[tagId]}
+              tagId={tagId}
+            />
           ))}
         {debouncedCommentBoxPosition && (
           <HighlightCommentPopup

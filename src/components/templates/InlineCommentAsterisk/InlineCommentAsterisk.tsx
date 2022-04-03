@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import Asterisk from '../../../../public/assets/asterisk.svg'
@@ -12,21 +6,15 @@ import InlineCommentBox from '../InlineCommentBox/InlineCommentBox'
 
 interface Props {
   tagId: string
-  startPos: number
-  endPos: number
-  commentId: string
-  comment: string
+  comments: InlineComment[]
 }
 
-const InlineCommentAsterisk = ({
-  tagId,
-  startPos,
-  endPos,
-  comment,
-  commentId
-}: Props) => {
-  const [isHovered, setIsHovered] = useState(false)
+const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
+  console.log({ comments })
   const [isCommentsActive, setIsCommentsActive] = useState(false)
+
+  const [lowestIndex, setLowestIndex] = useState<number | null>(null)
+  const [highestIndex, setHighestIndex] = useState<number | null>(null)
 
   const [commentBoxPosition, setCommentBoxPosition] = useState({
     x: 0,
@@ -35,6 +23,23 @@ const InlineCommentAsterisk = ({
 
   const [defaultHtml, setDefaultHtml] = useState<string>('')
   const [innerHtml, setInnerHtml] = useState<string>('')
+
+  useEffect(() => {
+    // get lowest start pos and highest end pos
+    const lowestStartPos = comments.reduce(
+      (lowest, comment) =>
+        comment.startPos < lowest ? comment.startPos : lowest,
+      Infinity
+    )
+    const highestEndPos = comments.reduce(
+      (highest, comment) =>
+        comment.endPos > highest ? comment.endPos : highest,
+      -Infinity
+    )
+
+    setLowestIndex(lowestStartPos)
+    setHighestIndex(highestEndPos)
+  }, [comments])
 
   useEffect(() => {
     const _innerHtml = document.getElementById(tagId).innerHTML
@@ -66,17 +71,20 @@ const InlineCommentAsterisk = ({
       const textWithin = defaultHtml.slice(startPos, endPos)
 
       const modifiedHtml = `${beforeMark}<mark id='${tagId}-mark' >${textWithin}</mark>${afterMark}`
-
       return modifiedHtml
     },
     [tagId, defaultHtml]
   )
 
   useLayoutEffect(() => {
-    if (!defaultHtml) return
-    const modifiedHtml = modifyInnerHtml({ startPos, endPos })
+    if (!defaultHtml || !lowestIndex || !highestIndex) return
+
+    const modifiedHtml = modifyInnerHtml({
+      startPos: lowestIndex,
+      endPos: highestIndex
+    })
     setInnerHtml(modifiedHtml)
-  }, [endPos, modifyInnerHtml, startPos, tagId, defaultHtml])
+  }, [modifyInnerHtml, tagId, defaultHtml, lowestIndex, highestIndex])
 
   useLayoutEffect(() => {
     if (!innerHtml) return
@@ -103,8 +111,7 @@ const InlineCommentAsterisk = ({
       </button>
       {isCommentsActive && (
         <InlineCommentBox
-          comment={comment}
-          commentId={commentId}
+          comments={comments}
           toggleComment={handleToggleCommentBoxActive}
           position={{
             x: commentBoxPosition.x,

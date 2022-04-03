@@ -1,8 +1,7 @@
 import { createPortal } from 'react-dom'
 
 interface Props {
-  commentId: string
-  comment: string
+  comments: InlineComment[]
   position: {
     x: number
     y: number
@@ -11,7 +10,7 @@ interface Props {
 }
 
 const InlineCommentBox = ({
-  comment,
+  comments,
   position,
   toggleComment
 }: Props): JSX.Element => {
@@ -31,8 +30,11 @@ const InlineCommentBox = ({
         }}
         className="tw-absolute | tw-p-4 | tw-bg-bg-layer-2 | tw-rounded-xl | tw-shadow-xl | tw-text-white | tw-flex tw-flex-col"
       >
-        <li className="last:tw-mb-0 tw-mb-2">{comment}</li>
-        <li className="last:tw-mb-0 tw-mb-2">{comment}</li>
+        {comments.map(commentObj => (
+          <li key={commentObj.commentId} className="last:tw-mb-0 tw-mb-2">
+            <p>{commentObj.comment}</p>
+          </li>
+        ))}
       </ul>
     </div>
   )
