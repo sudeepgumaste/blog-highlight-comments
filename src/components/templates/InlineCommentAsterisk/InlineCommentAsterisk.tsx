@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import Asterisk from '../../../../public/assets/asterisk.svg'
@@ -27,11 +33,12 @@ const InlineCommentAsterisk = ({
     y: 0
   })
 
-  const defaultHtml = useRef<string>('')
+  const [defaultHtml, setDefaultHtml] = useState<string>('')
+  const [innerHtml, setInnerHtml] = useState<string>('')
 
   useEffect(() => {
     const _innerHtml = document.getElementById(tagId).innerHTML
-    defaultHtml.current = _innerHtml
+    setDefaultHtml(_innerHtml)
   }, [tagId])
 
   const handleToggleCommentBoxActive = useCallback(() => {
@@ -54,59 +61,37 @@ const InlineCommentAsterisk = ({
 
   const modifyInnerHtml = useCallback(
     ({ startPos, endPos }) => {
-      const beforeMark = defaultHtml.current.slice(0, startPos)
-      const afterMark = defaultHtml.current.slice(
-        endPos,
-        defaultHtml.current.length
-      )
-      const textWithin = defaultHtml.current.slice(startPos, endPos)
+      const beforeMark = defaultHtml.slice(0, startPos)
+      const afterMark = defaultHtml.slice(endPos, defaultHtml.length)
+      const textWithin = defaultHtml.slice(startPos, endPos)
 
       const modifiedHtml = `${beforeMark}<mark id='${tagId}-mark' >${textWithin}</mark>${afterMark}`
 
       return modifiedHtml
     },
-    [tagId]
+    [tagId, defaultHtml]
   )
 
-  const handleHoverOnAsterisk = useCallback(() => {
-    let htmlToSet = ''
-    if (!isHovered) {
-      htmlToSet = modifyInnerHtml({
-        startPos,
-        endPos
-      })
-      setIsHovered(true)
-    } else {
-      htmlToSet = defaultHtml.current
-      setIsHovered(false)
-    }
-    const tag = document.getElementById(tagId)
-    tag.innerHTML = htmlToSet
-  }, [isHovered, tagId, modifyInnerHtml, startPos, endPos])
+  useLayoutEffect(() => {
+    if (!defaultHtml) return
+    const modifiedHtml = modifyInnerHtml({ startPos, endPos })
+    setInnerHtml(modifiedHtml)
+  }, [endPos, modifyInnerHtml, startPos, tagId, defaultHtml])
 
-  useEffect(() => {
-    // deferring the execution of the callback
-    setTimeout(() => {
-      // have to set the event handler this way because modifying the inner html results in
-      // the button losing its event handlers. This ensures they are added back after hover
-      // changing
-      const inlineCommentTrigger = document.getElementById(
-        `inline-comment-trigger-${tagId}`
-      )
-      inlineCommentTrigger.addEventListener(
-        'click',
-        handleToggleCommentBoxActive
-      )
-      if (!isHovered) {
-        inlineCommentTrigger.addEventListener(
-          'mouseover',
-          handleHoverOnAsterisk
-        )
-      } else {
-        inlineCommentTrigger.addEventListener('mouseout', handleHoverOnAsterisk)
-      }
-    }, 0)
-  }, [handleHoverOnAsterisk, handleToggleCommentBoxActive, isHovered, tagId])
+  useLayoutEffect(() => {
+    if (!innerHtml) return
+    const tag = document.getElementById(tagId)
+    tag.innerHTML = innerHtml
+  }, [innerHtml, tagId])
+
+  useLayoutEffect(() => {
+    queueMicrotask(() => {
+      const trigger = document.getElementById(`inline-comment-trigger-${tagId}`)
+      trigger?.addEventListener('click', () => {
+        handleToggleCommentBoxActive()
+      })
+    })
+  }, [tagId, innerHtml, handleToggleCommentBoxActive])
 
   const render = () => (
     <>
@@ -129,7 +114,12 @@ const InlineCommentAsterisk = ({
       )}
     </>
   )
-  return createPortal(render(), document.getElementById(tagId))
+
+  if (typeof window === 'object') {
+    // Check if document is finally loaded
+    return createPortal(render(), document.getElementById(tagId))
+  }
+  return null
 }
 
 export default InlineCommentAsterisk
