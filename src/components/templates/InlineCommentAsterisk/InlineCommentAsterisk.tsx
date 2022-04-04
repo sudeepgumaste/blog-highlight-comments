@@ -121,9 +121,11 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
     </>
   )
 
+  // Check if document is finally loaded
   if (typeof window === 'object') {
-    // Check if document is finally loaded
-    return createPortal(render(), document.getElementById(tagId))
+    const tag = document.getElementById(tagId)
+    if (!tag) return null
+    return createPortal(render(), tag)
   }
   return null
 }
