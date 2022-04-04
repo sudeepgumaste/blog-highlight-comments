@@ -3,7 +3,6 @@ import { useQuery, UseQueryResult } from 'react-query'
 import { queryKeys } from '../../utils/queryKeys'
 
 type ReturnType = {
-  comments: InlineComment[]
   tagIdMap: { [key: string]: InlineComment[] }
 }
 
@@ -44,19 +43,7 @@ const useGetInlineComments = (params: Params): UseQueryResult<ReturnType> => {
             comment: comment.comment
           })
         })
-        const transformedComments: InlineComment[] = response.comments.map(
-          comment => {
-            return {
-              commentId: comment.comment_id,
-              tagId: comment.tag_id,
-              startPos: comment.start_pos,
-              endPos: comment.end_pos,
-              comment: comment.comment
-            }
-          }
-        )
         return {
-          comments: transformedComments,
           tagIdMap: commentsByTagId
         }
       }
