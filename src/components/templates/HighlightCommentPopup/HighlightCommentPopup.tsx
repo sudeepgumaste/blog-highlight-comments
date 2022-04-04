@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import useAddInlineComment from '../../../hooks/api/use-add-inline-comment'
@@ -9,10 +8,14 @@ interface Props {
     y: number
   }
   blogId: number
+  toggleCommentPopup: () => void
 }
 
-const HighlightCommentPopup = ({ position, blogId }: Props): JSX.Element => {
-  const router = useRouter()
+const HighlightCommentPopup = ({
+  position,
+  blogId,
+  toggleCommentPopup
+}: Props): JSX.Element => {
   const [comment, setComment] = useState('')
   const [selection, setSelection] = useState<null | {
     startPos: number
@@ -20,7 +23,7 @@ const HighlightCommentPopup = ({ position, blogId }: Props): JSX.Element => {
   }>(null)
   const [tagId, setTagId] = useState<string | null>(null)
 
-  const { mutate: handleAddComment, isLoading } = useAddInlineComment()
+  const { mutateAsync: handleAddComment, isLoading } = useAddInlineComment()
 
   useEffect(() => {
     const selection = window.getSelection()
@@ -33,37 +36,51 @@ const HighlightCommentPopup = ({ position, blogId }: Props): JSX.Element => {
     setTagId(selection.anchorNode.parentElement.id)
   }, [position.x, position.y])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    handleAddComment({
-      comment,
-      tagId,
-      blogId,
-      ...selection
-    })
+    try {
+      await handleAddComment({
+        comment,
+        tagId,
+        blogId,
+        ...selection
+      })
+      toggleCommentPopup()
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const render = () => (
-    <form
-      className=" tw-fixed | tw-p-4 | tw-bg-bg-layer-2 | tw-flex | tw-rounded-md"
-      onSubmit={handleSubmit}
-      style={{
-        left: position.x,
-        top: position.y
-      }}
-    >
-      <input
-        type="text"
-        value={comment}
-        onChange={e => {
-          setComment(e.target.value)
+    <div className="tw-absolute | tw-top-0 tw-left-0 tw-right-0 tw-bottom-0">
+      <div
+        className="tw-absolute tw-top-0 tw-left-0 tw-right-0 tw-bottom-0"
+        onClick={e => {
+          toggleCommentPopup()
+          e.stopPropagation()
         }}
-        className="tw-bg-bg-layer-1 | tw-px-2 tw-py-1 | tw-flex-1 | tw-mr-2 | tw-rounded-md"
       />
-      <button className="tw-bg-blue-500 | tw-rounded-full | tw-text-xs | tw-p-2">
-        Send
-      </button>
-    </form>
+      <form
+        className=" tw-absolute | tw-p-4 | tw-bg-bg-layer-2 | tw-flex | tw-rounded-md"
+        onSubmit={handleSubmit}
+        style={{
+          left: position.x,
+          top: position.y
+        }}
+      >
+        <input
+          type="text"
+          value={comment}
+          onChange={e => {
+            setComment(e.target.value)
+          }}
+          className="tw-bg-bg-layer-1 | tw-px-2 tw-py-1 | tw-flex-1 | tw-mr-2 | tw-rounded-md"
+        />
+        <button className="tw-bg-blue-500 | tw-rounded-full | tw-text-xs | tw-p-2">
+          Send
+        </button>
+      </form>
+    </div>
   )
 
   if (typeof window === 'object') {

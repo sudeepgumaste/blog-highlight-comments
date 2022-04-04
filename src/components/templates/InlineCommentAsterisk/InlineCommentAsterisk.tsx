@@ -41,7 +41,7 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
   }, [comments])
 
   useEffect(() => {
-    const _innerHtml = document.getElementById(tagId).innerHTML
+    const _innerHtml = document.getElementById(tagId)?.innerHTML
     setDefaultHtml(_innerHtml)
   }, [tagId])
 
@@ -59,7 +59,7 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
 
     setCommentBoxPosition({
       x: triggerLeft + triggerWidth,
-      y: triggerTop + html.scrollTop
+      y: triggerTop + html.scrollTop - 64 // 64 is the navbar height
     })
   }, [tagId])
 
@@ -69,10 +69,10 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
       const afterMark = defaultHtml.slice(endPos, defaultHtml.length)
       const textWithin = defaultHtml.slice(startPos, endPos)
 
-      const modifiedHtml = `${beforeMark}<mark id='${tagId}-mark' >${textWithin}</mark>${afterMark}`
+      const modifiedHtml = `${beforeMark}<mark>${textWithin}</mark>${afterMark}`
       return modifiedHtml
     },
-    [tagId, defaultHtml]
+    [defaultHtml]
   )
 
   useLayoutEffect(() => {
@@ -92,6 +92,9 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
   }, [innerHtml, tagId])
 
   useLayoutEffect(() => {
+    // making sure to add event listener at the end of event loop so that
+    // the element is rendered before trying to get it in the dom to add
+    // event listener
     queueMicrotask(() => {
       const trigger = document.getElementById(`inline-comment-trigger-${tagId}`)
       trigger?.addEventListener('click', () => {
@@ -114,7 +117,7 @@ const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
           toggleComment={handleToggleCommentBoxActive}
           position={{
             x: commentBoxPosition.x,
-            y: commentBoxPosition.y - 64
+            y: commentBoxPosition.y
           }}
         />
       )}

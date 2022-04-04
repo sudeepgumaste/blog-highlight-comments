@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Divider from '../../components/atoms/Divider/Divider'
 import HighlightCommentPopup from '../../components/templates/HighlightCommentPopup/HighlightCommentPopup'
@@ -32,11 +32,10 @@ const BlogPage = ({ id: blogId }: Props) => {
     debounceTimer: 500
   })
 
-  const blogContentRef = useRef<HTMLElement>(null)
-
   useEffect(() => {
     const handleMountCommentBox = () => {
       const selection = window.getSelection()
+      const html = document.querySelector('html')
 
       if (
         selection.anchorNode !== selection.focusNode ||
@@ -44,13 +43,15 @@ const BlogPage = ({ id: blogId }: Props) => {
       ) {
         return
       }
-      const { x: selectionX, y: selectionY } = selection
-        .getRangeAt(0)
-        .getBoundingClientRect()
+      const {
+        x: selectionX,
+        y: selectionY,
+        height: selectionHeight
+      } = selection.getRangeAt(0).getBoundingClientRect()
 
       setCommentBoxPosition({
         x: selectionX,
-        y: selectionY + 24
+        y: selectionY + selectionHeight + html.scrollTop - 64 // 64 is the height of navbar
       })
     }
     // making sure the blog content is
@@ -91,7 +92,6 @@ const BlogPage = ({ id: blogId }: Props) => {
               </div>
               <Divider orientation="horizontal" />
               <section
-                ref={blogContentRef}
                 className={clsx(styles.blogBody, 'tw-py-9')}
                 dangerouslySetInnerHTML={{ __html: blogRes.blog }}
               ></section>
@@ -114,6 +114,7 @@ const BlogPage = ({ id: blogId }: Props) => {
               x: debouncedCommentBoxPosition.x,
               y: debouncedCommentBoxPosition.y
             }}
+            toggleCommentPopup={() => setCommentBoxPosition(null)}
           />
         )}
       </>
