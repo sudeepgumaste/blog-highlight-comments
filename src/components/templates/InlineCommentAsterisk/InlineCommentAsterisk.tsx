@@ -10,7 +10,6 @@ interface Props {
 }
 
 const InlineCommentAsterisk = ({ tagId, comments }: Props) => {
-  console.log({ comments })
   const [isCommentsActive, setIsCommentsActive] = useState(false)
 
   const [lowestIndex, setLowestIndex] = useState<number | null>(null)

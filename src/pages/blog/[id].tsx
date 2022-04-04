@@ -39,10 +39,9 @@ const BlogPage = ({ id: blogId }: Props) => {
       const selection = window.getSelection()
 
       if (
-        selection.anchorNode === selection.focusNode &&
+        selection.anchorNode !== selection.focusNode ||
         selection.anchorOffset === selection.focusOffset
       ) {
-        setCommentBoxPosition(null)
         return
       }
       const { x: selectionX, y: selectionY } = selection
@@ -110,7 +109,7 @@ const BlogPage = ({ id: blogId }: Props) => {
           ))}
         {debouncedCommentBoxPosition && (
           <HighlightCommentPopup
-            tagId="tag-1"
+            blogId={Number.parseInt(blogId)}
             position={{
               x: debouncedCommentBoxPosition.x,
               y: debouncedCommentBoxPosition.y

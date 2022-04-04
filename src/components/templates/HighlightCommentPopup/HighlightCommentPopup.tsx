@@ -1,20 +1,46 @@
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import useAddInlineComment from '../../../hooks/api/use-add-inline-comment'
 
 interface Props {
-  tagId: string
   position: {
     x: number
     y: number
   }
+  blogId: number
 }
 
-const HighlightCommentPopup = ({ tagId, position }: Props): JSX.Element => {
+const HighlightCommentPopup = ({ position, blogId }: Props): JSX.Element => {
+  const router = useRouter()
   const [comment, setComment] = useState('')
+  const [selection, setSelection] = useState<null | {
+    startPos: number
+    endPos: number
+  }>(null)
+  const [tagId, setTagId] = useState<string | null>(null)
+
+  const { mutate: handleAddComment, isLoading } = useAddInlineComment()
+
+  useEffect(() => {
+    const selection = window.getSelection()
+    const { anchorOffset, focusOffset } = selection
+    setSelection({
+      startPos: anchorOffset,
+      endPos: focusOffset
+    })
+
+    setTagId(selection.anchorNode.parentElement.id)
+  }, [position.x, position.y])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    console.log({ comment, tagId })
+    handleAddComment({
+      comment,
+      tagId,
+      blogId,
+      ...selection
+    })
   }
 
   const render = () => (
